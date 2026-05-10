@@ -1,0 +1,92 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/manifest.v2.schema.json
+
+packaging_format = 2
+
+id = "yamtrack_fork"
+name = "Yamtrack (LukeKeller fork)"
+description.en = "Yamtrack — fork build (LukeKeller). Media tracker for movies, TV, anime, manga, games, books and more"
+description.fr = "Yamtrack — build de fork (LukeKeller). Suivi de médias pour films, séries, anime, manga, jeux, livres et plus"
+
+version = "0.25.2~ynh17"
+
+maintainers = ["gmanaud", "lukekeller (fork)"]
+
+[upstream]
+license = "AGPL-3.0-or-later"
+demo = "https://yamtrack.fuzzygrim.com"
+code = "https://github.com/LukeKeller/Yamtrack"
+
+[integration]
+yunohost = ">= 12.1.39"
+helpers_version = "2.1"
+architectures = "all"
+multi_instance = true
+
+ldap = false
+sso = true
+
+disk = "100M"
+ram.build = "300M"
+ram.runtime = "200M"
+
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.path]
+    type = "path"
+    default = "/yamtrack-fork"
+
+    [install.init_main_permission]
+    type = "group"
+    default = "all_users"
+
+    [install.admin]
+    type = "user"
+
+    [install.enable_sso]
+    type = "boolean"
+    default = true
+    ask.en = "Enable SSO authentication via Dex (OIDC)?"
+    ask.fr = "Activer l'authentification SSO via Dex (OIDC) ?"
+    help.en = "If enabled and Dex is installed, users will authenticate via YunoHost SSO. Otherwise, Yamtrack uses its own local authentication. Dex must be installed separately: https://apps.yunohost.org/app/dex"
+    help.fr = "Si activé et que Dex est installé, les utilisateurs s'authentifieront via le SSO YunoHost. Sinon, Yamtrack utilisera son propre système d'authentification locale. Dex doit être installé séparément : https://apps.yunohost.org/app/dex"
+
+[resources]
+    [resources.sources.main]
+    # Pinned to a specific commit on LukeKeller/Yamtrack so the install is reproducible.
+    # When you push new code on the fork, run yunohost-package/bump-source.sh
+    # to update both fields together.
+    url = "https://github.com/LukeKeller/Yamtrack/archive/4947b9c9ef74d455039dec05b04ba6f9305c44b8.tar.gz"
+    sha256 = "312986e7c46ef01aa75bf249ef9fbc3f6da4ec145be287ce41daab28e23cb957"
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.data_dir]
+
+    [resources.permissions]
+    main.url = "/"
+
+    # Public sub-paths: external services authenticate via their own bearer
+    # token (Yamtrack's per-user API token), not via SSOwat. Without
+    # auth_header=false the YunoHost auth_request middleware 302s any
+    # unauthenticated request to the SSO login page, ignoring the
+    # Authorization header — which broke the Jellyfin/Plex/Emby webhooks
+    # and the ListenBrainz scrobble receiver for Multi-Scrobbler.
+    api.url = "/api/scrobble"
+    api.additional_urls = ["/webhook"]
+    api.allowed = "visitors"
+    api.auth_header = false
+    api.show_tile = false
+    api.protected = true
+
+    [resources.ports]
+    main.default = 8096
+
+    [resources.apt]
+    packages = "python3, python3-dev, python3-pip, python3-venv, libpq-dev, postgresql, postgresql-contrib, redis-server"
+
+    [resources.database]
+    type = "postgresql"
