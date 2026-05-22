@@ -74,47 +74,47 @@ sudo yunohost app install /tmp/yamtrack/yunohost-package
 
 After step 2 the URL install (method A above) works.
 
-## Updating the source pin
+## Shipping flow (Yamtrack feature → YunoHost upgrade)
 
-`manifest.toml` pins `[resources.sources.main]` to a **specific commit** on `LukeKeller/Yamtrack`, with a matching SHA256. When you push new commits on the fork (e.g., as Hardcover sync development progresses) and want the YunoHost package to deploy that newer code, you must update both fields together.
+The canonical flow has two repos and two integration branches kept up to date:
 
-```bash
-cd yunohost-package
-./bump-source.sh                       # uses HEAD of the current branch
-./bump-source.sh <commit-or-branch>    # explicit ref
-```
+- **`LukeKeller/Yamtrack`** → integration branch is `dev`. Every feature lands on `dev`, followed by an empty bump-marker commit (`Bump fork package to 0.25.2~ynhNN (<feature>)`).
+- **`LukeKeller/yamtrack_ynh`** (this repo) → integration branch is `main`. `manifest.toml` is the source of truth for the version YunoHost installs.
 
-The script downloads the corresponding GitHub tarball, computes its SHA256, rewrites `manifest.toml`, and prints the diff.
+Both branches should always reflect the currently-deployed state. Do not park bumps on long-lived feature branches.
 
-## Re-publishing after a bump
+### Steps
 
-After running `bump-source.sh` and committing the result:
+1. **Finish the feature in Yamtrack** and merge it into `dev` (rebase/fast-forward preferred). Add the empty bump-marker commit on `dev` and push. Record the resulting `dev` HEAD SHA.
+2. **In this repo, on `main`**, update the pin and version together:
+   ```bash
+   git checkout main && git pull --ff-only
+   ./bump-source.sh <yamtrack-dev-head-sha>     # rewrites url + sha256 in manifest.toml
+   sed -i 's/^version = ".*"/version = "0.25.2~ynhNN"/' manifest.toml   # bump NN
+   git add manifest.toml
+   git commit -m "Bump fork package to 0.25.2~ynhNN (<short feature description>)"
+   git push origin main
+   ```
+   Use the same `NN` as the Yamtrack bump marker so the two repos stay aligned.
+3. **Upgrade on the VPS** (the YunoHost app id is `yamtrack_fork`, not `yamtrack`):
+   ```bash
+   # Method A — pull straight from the catalog repo
+   sudo yunohost app upgrade yamtrack_fork -u https://github.com/LukeKeller/yamtrack_ynh
 
-```bash
-# 1. Push the change on your dev branch
-git add yunohost-package/manifest.toml
-git commit -m "Bump yunohost source pin"
-git push
+   # Method B — local working copy
+   cd /tmp/yamtrack-pkg && git pull
+   sudo yunohost app upgrade yamtrack_fork -u /tmp/yamtrack-pkg
+   ```
 
-# 2. Refresh the orphan branch on LukeKeller/Yamtrack
-git subtree split --prefix=yunohost-package -b yunohost-package
-git push -f origin yunohost-package
+After the upgrade succeeds, the feature branches in both repos can be deleted locally and on the remote.
 
-# 3. Refresh main on LukeKeller/yamtrack_ynh (set up the remote once)
-git remote add ynh https://github.com/LukeKeller/yamtrack_ynh.git  # one-time
-git push -f ynh yunohost-package:main
-```
+### `bump-source.sh` details
 
-Then on the VPS (note the id is `yamtrack_fork`, not `yamtrack`):
+`./bump-source.sh <commit-or-branch>` resolves the ref to a commit SHA on `LukeKeller/Yamtrack`, downloads the matching GitHub tarball, computes its SHA256, and rewrites `[resources.sources.main]` in `manifest.toml`. Running it with no argument uses the current local HEAD of *this* repo, which is rarely what you want — always pass the Yamtrack SHA explicitly.
 
-```bash
-# Method A
-sudo yunohost app upgrade yamtrack_fork -u https://github.com/LukeKeller/yamtrack_ynh
+### Mirroring to the `yunohost-package` branch on Yamtrack
 
-# Method B
-cd /tmp/yamtrack-pkg && git pull
-sudo yunohost app upgrade yamtrack_fork -u /tmp/yamtrack-pkg
-```
+The Yamtrack repo keeps a copy of these files under `yunohost-package/` and on an orphan `yunohost-package` branch, used by the "local path install" method (Method B in the install section above). When you change anything in this repo that affects the install (manifest, scripts, conf), also refresh that mirror — or leave a note in the bump-marker commit if you skipped it.
 
 ## What the package does
 
