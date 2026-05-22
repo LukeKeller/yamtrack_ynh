@@ -81,3 +81,17 @@ services = ["__APP__", "__APP__-celery", "__APP__-celery-beat"]
         redact = true
         bind = "STEAM_API_KEY:__INSTALL_DIR__/.env"
         optional = true
+
+    [main.omdb]
+    name.en = "OMDb (ratings & box office)"
+    name.fr = "OMDb (notes et recettes)"
+    help.en = "Optional OMDb API key. Surfaces Rotten Tomatoes, Metacritic, and IMDb ratings (plus US box office) on movie and TV detail pages. Free tier: 1,000 requests/day. Get a key at [omdbapi.com/apikey.aspx](https://www.omdbapi.com/apikey.aspx)."
+    help.fr = "Clé API OMDb optionnelle. Affiche les notes Rotten Tomatoes, Metacritic et IMDb (ainsi que les recettes US) sur les pages de films et séries. Offre gratuite : 1 000 requêtes/jour. Obtenez une clé sur [omdbapi.com/apikey.aspx](https://www.omdbapi.com/apikey.aspx)."
+
+        [main.omdb.omdb_api]
+        ask.en = "OMDb API Key"
+        ask.fr = "Clé API OMDb"
+        type = "string"
+        redact = true
+        bind = "OMDB_API:__INSTALL_DIR__/.env"
+        optional = true

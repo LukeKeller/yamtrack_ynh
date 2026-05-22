@@ -60,7 +60,7 @@ YAMTRACK_MANAGED_ENV_VARS='SECRET|DEBUG|ALLOWED_HOSTS|CSRF|URLS|DB_HOST|DB_PORT|
 # placeholders in the .env template so that ynh_read_var_in_file never returns
 # YNH_NULL (which would make YunoHost refuse to display the config panel).
 # Values set by the user (via UI or manual edit) are preserved across upgrades.
-YAMTRACK_CONFIG_PANEL_ENV_VARS='TRAKT_API|TRAKT_API_SECRET|SIMKL_ID|SIMKL_SECRET|ANILIST_ID|ANILIST_SECRET|STEAM_API_KEY'
+YAMTRACK_CONFIG_PANEL_ENV_VARS='TRAKT_API|TRAKT_API_SECRET|SIMKL_ID|SIMKL_SECRET|ANILIST_ID|ANILIST_SECRET|STEAM_API_KEY|OMDB_API'
 
 # Write the .env config file and append OIDC + BASE_URL settings
 # This avoids issues with ynh_config_add sed substitution on JSON values
