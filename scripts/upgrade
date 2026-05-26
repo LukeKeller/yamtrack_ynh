@@ -95,18 +95,22 @@ popd
 # REFRESH API PERMISSION ALLOWLIST
 #=================================================
 # YunoHost only applies the [resources.permissions] block from
-# manifest.toml on INSTALL — not on upgrade. So when a new release adds a
-# public sub-path (e.g. /api/koreader for KOReader sync), boxes that
+# manifest.toml on INSTALL — not on upgrade. So when a new release adds
+# a public sub-path (e.g. /api/koreader for KOReader sync), boxes that
 # installed an older version keep their stale ``additional_urls`` and
 # nginx 302s the new path to the SSO login page even though the regex
 # in conf/nginx.conf has the carve-out. ``--add-url`` is idempotent
 # (no-op if the URL is already present), so calling it on every upgrade
-# is safe regardless of how far behind the box was.
+# is safe.
+#
+# Each call is separate (some YunoHost versions reject multi-value
+# --add-url) and ``|| true``'d so a permission-CLI hiccup can never
+# abort an otherwise-working upgrade and trigger a safety-rollback.
 ynh_script_progression "Refreshing API permission allowlist..."
 
-yunohost user permission update "$app.api" \
-    --add-url "/webhook" "/api/koreader" \
-    --add visitors
+yunohost user permission update "$app.api" --add-url "/webhook"      || true
+yunohost user permission update "$app.api" --add-url "/api/koreader" || true
+yunohost user permission update "$app.api" --add visitors            || true
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
