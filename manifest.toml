@@ -76,7 +76,7 @@ ram.runtime = "200M"
     # Authorization header — which broke the Jellyfin/Plex/Emby webhooks
     # and the ListenBrainz scrobble receiver for Multi-Scrobbler.
     api.url = "/api/scrobble"
-    api.additional_urls = ["/webhook"]
+    api.additional_urls = ["/webhook", "/api/koreader"]
     api.allowed = "visitors"
     api.auth_header = false
     api.show_tile = false
