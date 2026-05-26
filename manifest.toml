@@ -57,8 +57,8 @@ ram.runtime = "200M"
     # Pinned to a specific commit on LukeKeller/Yamtrack so the install is reproducible.
     # When you push new code on the fork, run yunohost-package/bump-source.sh
     # to update both fields together.
-    url = "https://github.com/LukeKeller/Yamtrack/archive/910caf3d2cf6817dcbc8089983677e05800e49b3.tar.gz"
-    sha256 = "c6054dbca330674e56b5feef485a7b1ab4af880e4dd86efe852aa5dfbfe19902"
+    url = "https://github.com/LukeKeller/Yamtrack/archive/bc89e1852808a020979fd52ac76c288e14ef4b78.tar.gz"
+    sha256 = "b5a67fe76d38cde85e42766bb719a7c6b3e6994ae0563d166f11b54c727fce60"
 
     [resources.system_user]
 
