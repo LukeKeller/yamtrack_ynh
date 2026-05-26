@@ -92,6 +92,23 @@ pushd "$install_dir/src"
 popd
 
 #=================================================
+# REFRESH API PERMISSION ALLOWLIST
+#=================================================
+# YunoHost only applies the [resources.permissions] block from
+# manifest.toml on INSTALL — not on upgrade. So when a new release adds a
+# public sub-path (e.g. /api/koreader for KOReader sync), boxes that
+# installed an older version keep their stale ``additional_urls`` and
+# nginx 302s the new path to the SSO login page even though the regex
+# in conf/nginx.conf has the carve-out. ``--add-url`` is idempotent
+# (no-op if the URL is already present), so calling it on every upgrade
+# is safe regardless of how far behind the box was.
+ynh_script_progression "Refreshing API permission allowlist..."
+
+yunohost user permission update "$app.api" \
+    --add-url "/webhook" "/api/koreader" \
+    --add visitors
+
+#=================================================
 # REAPPLY SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Upgrading system configurations..."
