@@ -108,9 +108,9 @@ popd
 # abort an otherwise-working upgrade and trigger a safety-rollback.
 ynh_script_progression "Refreshing API permission allowlist..."
 
-yunohost user permission update "$app.api" --add-url "/webhook"      || true
-yunohost user permission update "$app.api" --add-url "/api/koreader" || true
-yunohost user permission update "$app.api" --add visitors            || true
+yunohost user permission url "$app.api" --add-url "/webhook"      || true
+yunohost user permission url "$app.api" --add-url "/api/koreader" || true
+yunohost user permission update "$app.api" --add visitors         || true
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
