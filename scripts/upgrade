@@ -99,18 +99,22 @@ popd
 # a public sub-path (e.g. /api/koreader for KOReader sync), boxes that
 # installed an older version keep their stale ``additional_urls`` and
 # nginx 302s the new path to the SSO login page even though the regex
-# in conf/nginx.conf has the carve-out. ``--add-url`` is idempotent
-# (no-op if the URL is already present), so calling it on every upgrade
-# is safe.
+# in conf/nginx.conf has the carve-out.
 #
-# Each call is separate (some YunoHost versions reject multi-value
-# --add-url) and ``|| true``'d so a permission-CLI hiccup can never
-# abort an otherwise-working upgrade and trigger a safety-rollback.
+# Use the packaging helpers (ynh_permission_url / ynh_permission_update)
+# rather than the raw ``yunohost user permission`` CLI — the CLI's
+# subcommand surface changed across YunoHost versions (older releases
+# don't have a ``permission url`` subcommand at all, and the ``update``
+# subcommand's flag set is also version-dependent), but the helpers
+# wrap whatever the local install supports. They're idempotent (no-op
+# if the URL / group is already present) so safe to call every upgrade,
+# and ``|| true``'d for belt-and-braces in case a helper still errors
+# on some edge case.
 ynh_script_progression "Refreshing API permission allowlist..."
 
-yunohost user permission url "$app.api" --add-url "/webhook"      || true
-yunohost user permission url "$app.api" --add-url "/api/koreader" || true
-yunohost user permission update "$app.api" --add visitors         || true
+ynh_permission_url    --permission="$app.api" --add_url="/webhook"      || true
+ynh_permission_url    --permission="$app.api" --add_url="/api/koreader" || true
+ynh_permission_update --permission="$app.api" --add="visitors"          || true
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
