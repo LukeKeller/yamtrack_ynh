@@ -112,9 +112,14 @@ popd
 # on some edge case.
 ynh_script_progression "Refreshing API permission allowlist..."
 
-ynh_permission_url    --permission="$app.api" --add_url="/webhook"      || true
-ynh_permission_url    --permission="$app.api" --add_url="/api/koreader" || true
-ynh_permission_update --permission="$app.api" --add="visitors"          || true
+# Note: the helpers internally build the fully-qualified permission name
+# as ``$app.$permission`` — pass just the sub-permission ("api"), not
+# ``$app.api`` (~ynh120 did that and the helper turned it into
+# ``yamtrack_fork.yamtrack_fork.api``, which then broke .split(".") inside
+# yunohost/permission.py).
+ynh_permission_url    --permission="api" --add_url="/webhook"      || true
+ynh_permission_url    --permission="api" --add_url="/api/koreader" || true
+ynh_permission_update --permission="api" --add="visitors"          || true
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATION
