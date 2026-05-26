@@ -53,7 +53,7 @@ sudo yunohost app install /tmp/yamtrack-pkg
 Or, if you'd rather have the whole Yamtrack source tree on hand:
 
 ```bash
-git clone -b claude/claude-md-hardcover-plan-E6saG \
+git clone -b main --single-branch \
   https://github.com/LukeKeller/Yamtrack.git /tmp/yamtrack
 sudo yunohost app install /tmp/yamtrack/yunohost-package
 ```
@@ -76,20 +76,20 @@ After step 2 the URL install (method A above) works.
 
 ## Shipping flow (Yamtrack feature → YunoHost upgrade)
 
-The canonical flow has two repos and two integration branches kept up to date:
+The canonical flow has two repos, each with `main` as its integration branch:
 
-- **`LukeKeller/Yamtrack`** → integration branch is `dev`. Every feature lands on `dev`, followed by an empty bump-marker commit (`Bump fork package to 0.25.2~ynhNN (<feature>)`).
+- **`LukeKeller/Yamtrack`** → integration branch is `main`. Every feature lands on `main`, followed by an empty bump-marker commit (`Bump fork package to 0.25.2~ynhNN (<feature>)`). Upstream (`FuzzyGrim/Yamtrack`) uses `dev`/`main` separately; this fork doesn't.
 - **`LukeKeller/yamtrack_ynh`** (this repo) → integration branch is `main`. `manifest.toml` is the source of truth for the version YunoHost installs.
 
 Both branches should always reflect the currently-deployed state. Do not park bumps on long-lived feature branches.
 
 ### Steps
 
-1. **Finish the feature in Yamtrack** and merge it into `dev` (rebase/fast-forward preferred). Add the empty bump-marker commit on `dev` and push. Record the resulting `dev` HEAD SHA.
+1. **Finish the feature in Yamtrack** and merge it into `main` (rebase/fast-forward preferred). Add the empty bump-marker commit on `main` and push. Record the resulting `main` HEAD SHA.
 2. **In this repo, on `main`**, update the pin and version together:
    ```bash
    git checkout main && git pull --ff-only
-   ./bump-source.sh <yamtrack-dev-head-sha>     # rewrites url + sha256 in manifest.toml
+   ./bump-source.sh <yamtrack-main-head-sha>    # rewrites url + sha256 in manifest.toml
    sed -i 's/^version = ".*"/version = "0.25.2~ynhNN"/' manifest.toml   # bump NN
    git add manifest.toml
    git commit -m "Bump fork package to 0.25.2~ynhNN (<short feature description>)"
