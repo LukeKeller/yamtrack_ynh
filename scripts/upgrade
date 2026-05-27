@@ -138,6 +138,42 @@ ynh_permission_url    --permission="api" --add_url="/library/opds" || true
 ynh_permission_update --permission="api" --add="visitors"          || true
 
 #=================================================
+# DISABLE SSOWAT'S BASIC-AUTH-SPOOFING PROTECTION ON THE API PERMISSION
+#=================================================
+# SSOWAT (/usr/share/ssowat/access.lua, the YunoHost-side nginx Lua
+# access handler) clears any incoming `Authorization: Basic ...` header
+# by default — its design assumption is that apps shouldn't trust
+# Basic creds they didn't get validated by the YunoHost SSO. The OPDS
+# catalog (and the Jellyfin/Plex webhooks that send tokens in headers)
+# explicitly *want* to receive their own Basic creds; Yamtrack
+# validates them against the per-user API token. The manifest already
+# declares `api.protect_against_basic_auth_spoofing = false`, but
+# older YunoHost versions silently ignore unknown manifest keys, so
+# we also write the override directly into /etc/ssowat/conf.json.persistent
+# as a runtime safety net. The persistent overlay does a full-entry
+# replace (not a deep merge) — writing just the new key blanks
+# `uris`/`auth_header`/`public` and crashes SSOWAT with a Lua error
+# at request time — so we re-emit the full permission record below.
+ynh_script_progression "Allowing Basic auth headers through to the api permission..."
+
+mkdir -p /etc/ssowat
+api_perm_uris="\"$domain$path/api/scrobble\", \"$domain$path/webhook\", \"$domain$path/api/koreader\", \"$domain$path/library/opds\""
+cat > /etc/ssowat/conf.json.persistent <<EOF
+{
+    "permissions": {
+        "${app}.api": {
+            "auth_header": false,
+            "public": true,
+            "protect_against_basic_auth_spoofing": false,
+            "uris": [ ${api_perm_uris} ],
+            "users": []
+        }
+    }
+}
+EOF
+yunohost app ssowatconf 2>/dev/null || true
+
+#=================================================
 # REAPPLY SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Upgrading system configurations..."

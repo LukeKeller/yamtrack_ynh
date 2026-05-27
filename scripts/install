@@ -89,6 +89,34 @@ pushd "$install_dir/src"
 popd
 
 #=================================================
+# DISABLE SSOWAT'S BASIC-AUTH-SPOOFING PROTECTION ON THE API PERMISSION
+#=================================================
+# See scripts/upgrade for the full rationale. The manifest already
+# declares `api.protect_against_basic_auth_spoofing = false`, but
+# older YunoHost versions silently ignore unknown manifest keys; the
+# .persistent override below is the runtime safety net so OPDS works
+# on a fresh install too. Full-entry replacement is required — the
+# persistent overlay does not deep-merge.
+ynh_script_progression "Allowing Basic auth headers through to the api permission..."
+
+mkdir -p /etc/ssowat
+api_perm_uris="\"$domain$path/api/scrobble\", \"$domain$path/webhook\", \"$domain$path/api/koreader\", \"$domain$path/library/opds\""
+cat > /etc/ssowat/conf.json.persistent <<EOF
+{
+    "permissions": {
+        "${app}.api": {
+            "auth_header": false,
+            "public": true,
+            "protect_against_basic_auth_spoofing": false,
+            "uris": [ ${api_perm_uris} ],
+            "users": []
+        }
+    }
+}
+EOF
+yunohost app ssowatconf 2>/dev/null || true
+
+#=================================================
 # SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Adding system configurations..."

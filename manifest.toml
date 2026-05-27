@@ -7,7 +7,7 @@ name = "Yamtrack (LukeKeller fork)"
 description.en = "Yamtrack — fork build (LukeKeller). Media tracker for movies, TV, anime, manga, games, books and more"
 description.fr = "Yamtrack — build de fork (LukeKeller). Suivi de médias pour films, séries, anime, manga, jeux, livres et plus"
 
-version = "0.25.2~ynh135"
+version = "0.25.2~ynh136"
 
 maintainers = ["gmanaud", "lukekeller (fork)"]
 
@@ -57,8 +57,8 @@ ram.runtime = "200M"
     # Pinned to a specific commit on LukeKeller/Yamtrack so the install is reproducible.
     # When you push new code on the fork, run yunohost-package/bump-source.sh
     # to update both fields together.
-    url = "https://github.com/LukeKeller/Yamtrack/archive/582c1d4df5ba3913a815008ca090073990f0229f.tar.gz"
-    sha256 = "c88d63d4c71504e1bb3b20b947aaec8ec98c81ba9367998493220a46e1528057"
+    url = "https://github.com/LukeKeller/Yamtrack/archive/ccf889385cf0d6bd7caf6dfed3680db1950f28f3.tar.gz"
+    sha256 = "0562e827aa3f85ebf5cb6b88f59b27b5bb8b0293906bc3990657a46140328b2a"
 
     [resources.system_user]
 
@@ -76,9 +76,20 @@ ram.runtime = "200M"
     # Authorization header — which broke the Jellyfin/Plex/Emby webhooks
     # and the ListenBrainz scrobble receiver for Multi-Scrobbler.
     api.url = "/api/scrobble"
-    api.additional_urls = ["/webhook", "/api/koreader"]
+    api.additional_urls = ["/webhook", "/api/koreader", "/library/opds"]
     api.allowed = "visitors"
     api.auth_header = false
+    # SSOWAT strips incoming Basic Authorization headers by default to
+    # prevent apps from being passed unvalidated creds (spoofing risk).
+    # The OPDS endpoint (and Jellyfin/Plex webhooks with token-in-URL)
+    # explicitly want to receive their own Basic credentials — Yamtrack
+    # validates them against the per-user API token. Opting out here lets
+    # KOReader's OPDS catalog browser actually reach Django with its
+    # Authorization header instead of getting it stripped at the SSOWAT
+    # access phase. If the manifest key isn't honoured by the installed
+    # YunoHost version, scripts/upgrade writes the same setting directly
+    # into /etc/ssowat/conf.json.persistent as a fallback.
+    api.protect_against_basic_auth_spoofing = false
     api.show_tile = false
     api.protected = true
 
