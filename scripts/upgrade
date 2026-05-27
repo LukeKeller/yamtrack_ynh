@@ -134,6 +134,7 @@ ynh_script_progression "Refreshing API permission allowlist..."
 # yunohost/permission.py).
 ynh_permission_url    --permission="api" --add_url="/webhook"      || true
 ynh_permission_url    --permission="api" --add_url="/api/koreader" || true
+ynh_permission_url    --permission="api" --add_url="/library/opds" || true
 ynh_permission_update --permission="api" --add="visitors"          || true
 
 #=================================================
