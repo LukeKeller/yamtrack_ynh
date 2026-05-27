@@ -56,6 +56,13 @@ ynh_script_progression "Adding $app's configuration..."
 yamtrack_setup_certs
 yamtrack_setup_env
 
+# Library uploads (OPDS server, ~ynh131+) live under $data_dir/media so
+# they survive `ynh_setup_source --full_replace` on every upgrade. The
+# $data_dir resource is auto-created by YunoHost from the manifest, so
+# we just need the per-feature subdir and the chown.
+mkdir -p "$data_dir/media"
+chown -R "$app:www-data" "$data_dir"
+
 #=================================================
 # SETUP THE DATABASE
 #=================================================

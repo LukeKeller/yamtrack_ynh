@@ -90,6 +90,12 @@ ynh_script_progression "Updating $app's configuration..."
 yamtrack_setup_certs
 yamtrack_setup_env
 
+# Library uploads (OPDS server, ~ynh131+) — ensure the data dir exists
+# and is owned correctly. mkdir is idempotent; chown handles installs
+# that pre-date the data_dir resource so a fresh subdir is reachable.
+mkdir -p "$data_dir/media"
+chown -R "$app:www-data" "$data_dir"
+
 #=================================================
 # SETUP THE DATABASE
 #=================================================
