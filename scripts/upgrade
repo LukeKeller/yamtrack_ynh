@@ -26,6 +26,15 @@ if [[ -f "$install_dir/.env" ]]; then
     ynh_store_file_checksum "$install_dir/.env"
 fi
 
+# Migration (~ynh124): older installs templated URLS without __PATH__, so the
+# `{% absolute_app_url %}` helper built KOReader / OAuth / outbound URLs missing
+# the app's path prefix. Rewrite the line in place if it's still the old shape,
+# then refresh the checksum so YunoHost doesn't flag it as user-edited.
+if [[ -f "$install_dir/.env" ]] && grep -qE "^URLS=https://${domain}/?$" "$install_dir/.env"; then
+    sed -i "s|^URLS=https://${domain}/\?$|URLS=https://${domain}${path}|" "$install_dir/.env"
+    ynh_store_file_checksum "$install_dir/.env"
+fi
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
