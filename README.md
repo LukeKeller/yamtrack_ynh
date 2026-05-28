@@ -86,16 +86,20 @@ Both branches should always reflect the currently-deployed state. Do not park bu
 ### Steps
 
 1. **Finish the feature in Yamtrack** and merge it into `main` (rebase/fast-forward preferred). Add the empty bump-marker commit on `main` and push. Record the resulting `main` HEAD SHA.
-2. **In this repo, on `main`**, update the pin and version together:
+2. **In this repo, on `main`**, update the pin and version together. **Derive `NN` from the live remote — both repos — every time**, not from a number you remember:
    ```bash
+   git fetch origin main
+   git log --oneline origin/main --grep="Bump to 0\.25\.2~ynh" -1   # this repo's last bump
+   # Cross-check that Yamtrack's last "Bump fork package to 0.25.2~ynhNN" matches.
+
    git checkout main && git pull --ff-only
    ./bump-source.sh <yamtrack-main-head-sha>    # rewrites url + sha256 in manifest.toml
    sed -i 's/^version = ".*"/version = "0.25.2~ynhNN"/' manifest.toml   # bump NN
    git add manifest.toml
-   git commit -m "Bump fork package to 0.25.2~ynhNN (<short feature description>)"
+   git commit -m "Bump to 0.25.2~ynhNN: <short feature description>"
    git push origin main
    ```
-   Use the same `NN` as the Yamtrack bump marker so the two repos stay aligned.
+   `NN` here must equal `NN` in the Yamtrack bump marker — the two repos stay aligned by convention. If they're off by one, something went wrong upstream; stop and reconcile before pushing.
 3. **Upgrade on the VPS** (the YunoHost app id is `yamtrack_fork`, not `yamtrack`):
    ```bash
    # Method A — pull straight from the catalog repo
